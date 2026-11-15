@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { SIGNATURE_HEADER, signResponse, verifyRequestSignature } from "./signature.js";
 
@@ -76,8 +77,10 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  const header = req.headers[SIGNATURE_HEADER];
+  const signature = Array.isArray(header) ? header[0] : header;
   // Authenticate the exact bytes before parsing the envelope.
-  if (!verifyRequestSignature(raw, req.headers[SIGNATURE_HEADER] as string | undefined, SECRET)) {
+  if (!verifyRequestSignature(raw, signature, SECRET)) {
     sendJson(res, 401, { error: "invalid_signature" });
     return;
   }
